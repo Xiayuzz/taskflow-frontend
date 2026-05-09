@@ -63,8 +63,6 @@ src/
 │   ├── components.d.ts   # 组件声明
 │   ├── models.ts         # 数据模型接口
 │   └── shims-vue.d.ts    # Vue 模块声明
-├── utils/               # 工具函数
-│   └── toast.ts         # 轻提示工具
 ├── views/               # 页面组件
 │   ├── ActivityView.vue     # 活动日志
 │   ├── DashboardView.vue    # 仪表盘
