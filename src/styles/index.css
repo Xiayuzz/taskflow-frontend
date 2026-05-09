@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义错误消息样式，确保在深色主题下可见 */
+.custom-error-message {
+  position: fixed !important;
+  top: 40px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: rgba(245, 108, 108, 0.95) !important;
+  color: white !important;
+  border: 1px solid #fbc4ab !important;
+  box-shadow: 0 4px 16px 0 rgba(245, 108, 108, 0.4) !important;
+  z-index: 999999 !important;
+  margin: 0 !important;
+  padding: 16px 20px !important;
+  min-width: 300px !important;
+  max-width: 500px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+}
+
+.custom-error-message:hover {
+  box-shadow: 0 6px 20px 0 rgba(245, 108, 108, 0.5) !important;
+  transform: translateX(-50%) translateY(-2px) !important;
+}
+
+.custom-error-message .el-message__content {
+  color: white !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.custom-error-message .el-message__closeBtn {
+  color: white !important;
+  font-size: 16px !important;
+  opacity: 0.8 !important;
+  margin-left: 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-error-message .el-message__closeBtn:hover {
+  color: #fff !important;
+  opacity: 1 !important;
+  transform: scale(1.1) !important;
+}
+
+/* ElMessage 样式覆盖，确保显示在顶部 */
+body > .el-message {
+  z-index: 999999 !important;
+}
+
+body > .el-message__wrapper {
+  position: fixed !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 999999 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body > .el-message--error {
+  background-color: rgba(245, 108, 108, 0.95) !important;
+  border: 1px solid #fbc4ab !important;
+  box-shadow: 0 2px 12px 0 rgba(245, 108, 108, 0.4) !important;
+}
+
+body > .el-message--error .el-message__content {
+  color: white !important;
+}
+
+body > .el-message--error .el-message__closeBtn {
+  color: white !important;
+}
+
+body > .el-message--error .el-message__closeBtn:hover {
+  color: #fff !important;
+  opacity: 0.8 !important;
+}
+
+/* 强制覆盖所有可能的 ElMessage 容器 */
+.el-message-container {
+  position: fixed !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+}
+
+.el-message-container .el-message {
+  pointer-events: auto !important;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .el-button {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  .el-input__inner {
+    min-height: 44px;
+  }
+
+  .custom-error-message {
+    max-width: 90vw !important;
+    min-width: 280px !important;
+  }
+}
