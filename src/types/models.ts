@@ -377,6 +377,7 @@ export interface CreateTaskPayload {
   title: string;
   description?: string;
   assigneeId?: number | string;
+  groupId?: number | string;
   priority: TaskPriority;
   dueDate?: string; // ISO
   tags?: string[];

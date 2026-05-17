@@ -434,6 +434,23 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="所属群组">
+          <el-select
+            v-model="createForm.groupId"
+            clearable
+            filterable
+            placeholder="选择群组"
+            style="width: 100%"
+            :teleported="false"
+          >
+            <el-option
+              v-for="group in groupList"
+              :key="group.id"
+              :label="group.name"
+              :value="group.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="优先级">
           <el-select v-model="createForm.priority">
             <el-option
@@ -832,6 +849,7 @@ import { ElMessageBox } from 'element-plus';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 
 import { batchAssignTasks, batchDeleteTasks, batchUpdateTasks } from '@/services/batchService';
+import { getGroups } from '@/services/groupService';
 import {
   createTask,
   deleteTask,
@@ -842,7 +860,7 @@ import {
 import { searchUsers } from '@/services/userService';
 import { useTaskStore } from '@/store/task';
 import { useUserStore } from '@/store/user';
-import type { Task, TaskPriority, TaskStatus, UpdateTaskPayload, User } from '@/types/models';
+import type { Group, Task, TaskPriority, TaskStatus, UpdateTaskPayload, User } from '@/types/models';
 import { toast } from '@/services/toast';
 
 const taskStore = useTaskStore();
@@ -873,6 +891,7 @@ async function remoteSearchUsers(query: string) {
 
 // 可用标签
 const availableTags = ref<{ name: string; color: string }[]>([]);
+const groupList = ref<Group[]>([]);
 
 // 基本过滤条件
 const filters = reactive({
@@ -1116,6 +1135,15 @@ async function fetchTags() {
   }
 }
 
+async function fetchGroups() {
+  try {
+    const result = await getGroups({ page: 1, pageSize: 1000 });
+    groupList.value = result.items;
+  } catch (e: any) {
+    toast.error(e?.response?.data?.message || '获取群组失败');
+  }
+}
+
 async function refresh() {
   loading.value = true;
   try {
@@ -1258,6 +1286,7 @@ const createForm = reactive<{
   title: string;
   description?: string;
   assigneeId?: number | null;
+  groupId?: number | null;
   priority: TaskPriority;
   dueDate?: string;
   tags?: string[];
@@ -1287,6 +1316,8 @@ async function submitCreate() {
     await createTask({
       title: createForm.title,
       description: createForm.description,
+      assigneeId: createForm.assigneeId ?? undefined,
+      groupId: createForm.groupId ?? undefined,
       priority: createForm.priority,
       dueDate: createForm.dueDate,
       tags: createForm.tags,
@@ -1300,6 +1331,7 @@ async function submitCreate() {
     createForm.title = '';
     createForm.description = '';
     createForm.assigneeId = null;
+    createForm.groupId = null;
     createForm.priority = 'medium';
     createForm.dueDate = undefined;
     createForm.tags = [];
@@ -1320,6 +1352,7 @@ async function submitCreate() {
 // 初始化
 onMounted(() => {
   fetchTags();
+  fetchGroups();
   refresh();
 });
 </script>

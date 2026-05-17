@@ -65,6 +65,26 @@
           </el-select>
         </el-form-item>
 
+        <el-form-item
+          label="所属群组"
+          prop="groupId"
+        >
+          <el-select
+            v-model="form.groupId"
+            clearable
+            filterable
+            placeholder="选择群组"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="group in groupList"
+              :key="group.id"
+              :label="group.name"
+              :value="group.id"
+            />
+          </el-select>
+        </el-form-item>
+
         <div class="row">
           <el-form-item
             label="优先级"
@@ -185,14 +205,16 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { getGroups } from '@/services/groupService';
 import { createTask, fetchTaskTags } from '@/services/taskService';
 import { searchUsers } from '@/services/userService';
-import type { TaskPriority, User } from '@/types/models';
+import type { Group, TaskPriority, User } from '@/types/models';
 
 const router = useRouter();
 const formRef = ref<FormInstance>();
 const submitting = ref(false);
 const availableTags = ref<{ name: string; color: string }[]>([]);
+const groupList = ref<Group[]>([]);
 
 // 用户搜索相关
 const userList = ref<User[]>([]);
@@ -218,6 +240,7 @@ const form = reactive({
   title: '',
   description: '',
   assigneeId: undefined as number | undefined,
+  groupId: undefined as number | undefined,
   priority: 'medium' as TaskPriority,
   dueDate: '',
   tags: [] as string[],
@@ -251,6 +274,15 @@ async function loadTags() {
   }
 }
 
+async function loadGroups() {
+  try {
+    const result = await getGroups({ page: 1, pageSize: 1000 });
+    groupList.value = result.items;
+  } catch (error) {
+    console.error('Failed to load groups', error);
+  }
+}
+
 async function submit() {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid: boolean) => {
@@ -261,6 +293,7 @@ async function submit() {
           title: form.title,
           description: form.description,
           assigneeId: form.assigneeId,
+          groupId: form.groupId,
           priority: form.priority,
           dueDate: form.dueDate || undefined,
           tags: form.tags,
@@ -281,6 +314,7 @@ async function submit() {
 
 onMounted(() => {
   loadTags();
+  loadGroups();
 });
 </script>
 

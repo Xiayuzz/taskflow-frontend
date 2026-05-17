@@ -15,6 +15,14 @@ import type {
   UserLoadStats,
 } from '@/types/models';
 
+function normalizeOptionalRelationId(value?: number | string | null): string | null | undefined {
+  if (value === undefined || value === null || value === '') {
+    return value;
+  }
+
+  return String(value);
+}
+
 // 任务列表参数
 export interface TaskListParams {
   page: number;
@@ -67,12 +75,19 @@ export async function getTask(id: number): Promise<Task> {
 }
 
 export async function createTask(payload: CreateTaskPayload): Promise<Task> {
-  const { data } = await api.post('/tasks', payload);
+  const { data } = await api.post('/tasks', {
+    ...payload,
+    assigneeId: normalizeOptionalRelationId(payload.assigneeId),
+    groupId: normalizeOptionalRelationId(payload.groupId),
+  });
   return data;
 }
 
 export async function updateTask(id: number, payload: UpdateTaskPayload): Promise<Task> {
-  const { data } = await api.patch(`/tasks/${id}`, payload);
+  const { data } = await api.patch(`/tasks/${id}`, {
+    ...payload,
+    assigneeId: normalizeOptionalRelationId(payload.assigneeId),
+  });
   return data;
 }
 
@@ -135,7 +150,10 @@ export async function batchAddTagsToTasks(
 
 // 新增：分配任务
 export async function assignTask(id: number, payload: AssignTaskPayload): Promise<Task> {
-  const { data } = await api.post(`/tasks/${id}/assign`, payload);
+  const { data } = await api.post(`/tasks/${id}/assign`, {
+    ...payload,
+    assigneeId: String(payload.assigneeId),
+  });
   return data;
 }
 
