@@ -7,11 +7,18 @@ let socket: Socket | null = null;
 
 const WS_URL =
   import.meta.env.VITE_WS_URL || import.meta.env.VITE_WS_BASE || window.location.origin;
+const WS_PATH = import.meta.env.VITE_WS_PATH || '/ws';
 
 export function connect(token?: string) {
   if (socket) return socket;
-  const opts: any = { transports: ['websocket'] };
-  if (token) opts.auth = { token };
+  const opts: any = {
+    path: WS_PATH,
+    transports: ['websocket'],
+  };
+  if (token) {
+    opts.auth = { token };
+    opts.query = { token };
+  }
   socket = io(WS_URL, opts);
 
   socket.on('connect', () => {

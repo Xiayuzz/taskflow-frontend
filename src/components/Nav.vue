@@ -411,16 +411,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { getUnreadNotificationCount } from '@/services/notificationService';
+import { off as offSocket, on as onSocket } from '@/services/websocket';
 import { useUserStore } from '@/store/user';
 
 const isMenuOpen = ref(false);
 const userStore = useUserStore();
 const router = useRouter();
 const unreadCount = ref(0);
+let unreadTimer: ReturnType<typeof setInterval> | undefined;
 
 const handleLogout = () => {
   userStore.logout();
@@ -439,10 +441,19 @@ async function loadUnreadCount() {
   }
 }
 
+function handleNewNotification() {
+  loadUnreadCount();
+}
+
 onMounted(() => {
   loadUnreadCount();
-  // 每30秒刷新一次未读计数
-  setInterval(loadUnreadCount, 30000);
+  onSocket('notification:new', handleNewNotification);
+  unreadTimer = setInterval(loadUnreadCount, 30000);
+});
+
+onBeforeUnmount(() => {
+  offSocket('notification:new', handleNewNotification);
+  if (unreadTimer) clearInterval(unreadTimer);
 });
 
 watch(

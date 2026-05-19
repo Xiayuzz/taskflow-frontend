@@ -27,7 +27,7 @@ const userStore = useUserStore();
 watch(
   () => userStore.token,
   (token: string | null) => {
-    if (token) connectSocket();
+    if (token) connectSocket(token);
     else disconnectSocket();
   },
   { immediate: true }

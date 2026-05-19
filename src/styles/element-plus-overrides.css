@@ -53,7 +53,7 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  height: 100% !important;
+  min-height: 100vh !important;
   padding: 20px !important;
 }
 
@@ -183,5 +183,17 @@ body {
 }
 
 .el-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2000 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: auto !important;
   background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.el-overlay.is-message-box {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }

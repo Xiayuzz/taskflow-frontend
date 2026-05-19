@@ -194,7 +194,7 @@
 
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import {
@@ -204,6 +204,7 @@ import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from '@/services/notificationService';
+import { off as offSocket, on as onSocket } from '@/services/websocket';
 import type { Notification } from '@/types/models';
 
 const router = useRouter();
@@ -283,6 +284,32 @@ async function loadNotifications() {
   }
 }
 
+async function refreshUnreadCount() {
+  const countResult = await getUnreadNotificationCount();
+  unreadCount.value = countResult.count;
+}
+
+function matchesCurrentFilter(notification: Notification) {
+  if (filterType.value && notification.type !== filterType.value) {
+    return false;
+  }
+  if (filterStatus.value === 'read' && !notification.isRead) {
+    return false;
+  }
+  if (filterStatus.value === 'unread' && notification.isRead) {
+    return false;
+  }
+  return true;
+}
+
+function handleNewNotification(notification: Notification) {
+  refreshUnreadCount();
+  total.value += 1;
+  if (page.value === 1 && matchesCurrentFilter(notification)) {
+    notifications.value = [notification, ...notifications.value].slice(0, pageSize.value);
+  }
+}
+
 async function markAsRead(id: number) {
   try {
     await markNotificationAsRead(id);
@@ -293,8 +320,7 @@ async function markAsRead(id: number) {
       notification.isRead = true;
     }
     // 更新未读数量
-    const countResult = await getUnreadNotificationCount();
-    unreadCount.value = countResult.count;
+    await refreshUnreadCount();
   } catch (error: any) {
     ElMessage.error(error?.response?.data?.message || '标记已读失败');
   }
@@ -354,6 +380,11 @@ function handleCurrentChange(val: number) {
 
 onMounted(() => {
   loadNotifications();
+  onSocket('notification:new', handleNewNotification);
+});
+
+onBeforeUnmount(() => {
+  offSocket('notification:new', handleNewNotification);
 });
 </script>
 
