@@ -1,12 +1,14 @@
 <template>
-  <div class="px-4 py-5 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8">
-    <div class="relative flex items-center justify-between">
+  <div
+    class="nav-shell px-4 py-5 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8"
+  >
+    <div class="nav-inner relative flex items-center justify-between">
       <div class="flex items-center flex-1">
         <a
           href="/"
           aria-label="Task Flow"
           title="Task Flow"
-          class="inline-flex items-center mr-8"
+          class="brand-link inline-flex items-center mr-8"
         >
           <svg
             class="w-8 text-blue-accent-400"
@@ -43,7 +45,7 @@
               height="12"
             ></rect>
           </svg>
-          <span class="ml-2 text-xl font-bold tracking-wide text-gray-800 uppercase"
+          <span class="brand-text ml-2 text-xl font-bold tracking-wide text-gray-800 uppercase"
             >Task Flow</span
           >
         </a>
@@ -104,7 +106,7 @@
           </li>
         </ul>
       </div>
-      <ul class="flex items-center space-x-4 lg:space-x-6">
+      <ul class="nav-actions flex items-center space-x-4 lg:space-x-6">
         <li v-if="userStore.isAuthenticated">
           <a
             href="/inbox"
@@ -148,9 +150,9 @@
             href="/profile"
             aria-label="个人资料"
             title="个人资料"
-            class="flex items-center gap-2 font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-blue-accent-400 px-3 py-2 rounded-lg hover:bg-blue-50"
+            class="profile-link flex items-center gap-2 font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-blue-accent-400 px-3 py-2 rounded-lg hover:bg-blue-50"
           >
-            <span>{{ userStore.currentUser?.name || '用户' }}</span>
+            <span class="profile-name">{{ userStore.currentUser?.name || '用户' }}</span>
             <img
               v-if="userStore.currentUser?.avatar"
               :src="userStore.currentUser.avatar"
@@ -170,7 +172,7 @@
             v-if="userStore.isAuthenticated"
             href="/"
             @click.prevent="handleLogout"
-            class="inline-flex items-center justify-center h-10 px-5 font-medium tracking-wide text-white transition duration-200 rounded-lg shadow-md bg-blue-accent-400 hover:bg-blue-accent-700 focus:shadow-outline focus:outline-none"
+            class="desktop-auth-action inline-flex items-center justify-center h-10 px-5 font-medium tracking-wide text-white transition duration-200 rounded-lg shadow-md bg-blue-accent-400 hover:bg-blue-accent-700 focus:shadow-outline focus:outline-none"
             aria-label="退出登录"
             title="退出登录"
           >
@@ -179,7 +181,7 @@
           <a
             v-else
             href="/register"
-            class="inline-flex items-center justify-center h-10 px-5 font-medium tracking-wide text-white transition duration-200 rounded-lg shadow-md bg-blue-accent-400 hover:bg-blue-accent-700 focus:shadow-outline focus:outline-none"
+            class="desktop-auth-action inline-flex items-center justify-center h-10 px-5 font-medium tracking-wide text-white transition duration-200 rounded-lg shadow-md bg-blue-accent-400 hover:bg-blue-accent-700 focus:shadow-outline focus:outline-none"
             aria-label="注册"
             title="注册"
           >
@@ -191,8 +193,8 @@
         <button
           aria-label="打开菜单"
           title="打开菜单"
-          class="p-2 -mr-1 transition duration-200 rounded focus:outline-none focus:shadow-outline hover:bg-blue-50 focus:bg-blue-50"
-          @click="isMenuOpen = true"
+          class="mobile-menu-btn p-2 -mr-1 transition duration-200 rounded focus:outline-none focus:shadow-outline hover:bg-blue-50 focus:bg-blue-50"
+          @click="openMobileNavigation"
         >
           <svg
             class="w-5 text-gray-600"
@@ -423,6 +425,14 @@ const userStore = useUserStore();
 const router = useRouter();
 const unreadCount = ref(0);
 let unreadTimer: ReturnType<typeof setInterval> | undefined;
+const emit = defineEmits<{
+  (event: 'toggle-sidebar'): void;
+}>();
+
+function openMobileNavigation() {
+  isMenuOpen.value = false;
+  emit('toggle-sidebar');
+}
 
 const handleLogout = () => {
   userStore.logout();
@@ -473,3 +483,77 @@ export default {
   name: 'AppNav',
 };
 </script>
+
+<style scoped>
+@media (max-width: 768px) {
+  .nav-shell {
+    width: 100%;
+    max-width: none;
+    padding: 10px 12px;
+  }
+
+  .nav-inner {
+    gap: 8px;
+  }
+
+  .brand-link {
+    min-width: 0;
+    margin-right: 8px;
+  }
+
+  .brand-link svg {
+    width: 26px;
+    flex: 0 0 26px;
+  }
+
+  .brand-text {
+    max-width: 112px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .nav-actions {
+    flex: 0 1 auto;
+    gap: 4px;
+  }
+
+  .nav-actions > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 4px !important;
+  }
+
+  .profile-link {
+    padding: 4px;
+    gap: 0;
+  }
+
+  .profile-name,
+  .desktop-auth-action {
+    display: none !important;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-text {
+    max-width: 88px;
+    font-size: 16px;
+  }
+
+  .brand-link svg {
+    width: 24px;
+    flex-basis: 24px;
+  }
+}
+</style>

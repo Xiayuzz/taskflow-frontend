@@ -87,7 +87,7 @@
         class="reply-target"
         v-if="replyingTo"
       >
-        <div class="reply-user">回复：用户#{{ replyingTo.userId }}</div>
+        <div class="reply-user">回复：{{ getCommentUserName(replyingTo) }}</div>
         <div class="reply-content">{{ replyingTo.content }}</div>
       </div>
       <el-input
@@ -187,6 +187,10 @@ function clearDraft() {
 }
 function allowDelete(c: Comment) {
   return c.userId === userStore.currentUser?.id || userStore.currentUser?.role === 'admin';
+}
+
+function getCommentUserName(comment: Comment) {
+  return comment.user?.name || comment.user?.username || `用户#${comment.userId}`;
 }
 
 async function load(reset = false) {
@@ -321,7 +325,7 @@ const CommentTreeNode: Component = defineComponent({
               h(
                 'span',
                 { class: 'user' },
-                p.node.comment.user?.name || '用户#' + p.node.comment.userId
+                getCommentUserName(p.node.comment)
               ),
               h('span', { class: 'time' }, p.formatTime(p.node.comment.createdAt)),
             ]),
