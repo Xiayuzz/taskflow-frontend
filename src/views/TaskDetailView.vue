@@ -511,6 +511,7 @@
         <div class="card-head">评论</div>
       </template>
       <CommentList
+        :key="commentListKey"
         v-if="task"
         :task-id="task.id"
         enable-create
@@ -838,6 +839,7 @@ import {
   getTaskAttachments,
   updateAttachmentDescription,
 } from '@/services/attachmentService';
+import { createComment } from '@/services/commentService';
 import { getGroupMembers } from '@/services/groupService';
 import {
   assignTask,
@@ -849,6 +851,7 @@ import {
   submitTaskProgress,
   updateTask,
 } from '@/services/taskService';
+import { toast } from '@/services/toast';
 import { getUserById } from '@/services/userService';
 import { useUserStore } from '@/store/user';
 const CommentList = defineAsyncComponent(() => import('@/components/CommentList.vue'));
@@ -873,6 +876,7 @@ const editVisible = ref(false);
 const isGroupMember = ref(false);
 const progressVisible = ref(false);
 const submittingProgress = ref(false);
+const commentListKey = ref(0);
 const progressForm = reactive({
   progress: 0,
   actualHours: 0,
@@ -1210,18 +1214,35 @@ async function submitProgress() {
 
   submittingProgress.value = true;
   try {
+    const submittedProgress = progressForm.progress;
+    const submittedActualHours = progressForm.actualHours;
+    const submittedRemark = progressForm.remark.trim();
     const updated = await submitTaskProgress(task.value.id, {
-      progress: progressForm.progress,
-      actualHours: progressForm.actualHours,
-      remark: progressForm.remark,
+      progress: submittedProgress,
+      actualHours: submittedActualHours,
+      remark: submittedRemark,
     });
     task.value = updated;
     // 同时更新编辑模型中的数据
     editModel.progress = updated.progress;
     editModel.actualHours = updated.actualHours;
 
+    let remarkSynced = false;
+    if (submittedRemark) {
+      try {
+        await createComment(updated.id, {
+          content: `【进度汇报】进度 ${submittedProgress}%，实际工时 ${submittedActualHours} 小时\n${submittedRemark}`,
+        });
+        commentListKey.value += 1;
+        remarkSynced = true;
+      } catch (commentError) {
+        console.error('Sync progress remark to comments failed:', commentError);
+        toast.warning('进度已提交，备注同步到评论失败');
+      }
+    }
+
     progressVisible.value = false;
-    ElMessage.success('进度汇报成功');
+    toast.success(remarkSynced ? '进度汇报成功，备注已同步到评论' : '进度汇报成功');
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '提交失败');
   } finally {

@@ -222,6 +222,6 @@ export async function submitTaskProgress(
   taskId: number,
   payload: TaskProgressPayload
 ): Promise<Task> {
-  const { data } = await api.post(`/api/v1/tasks/${taskId}/progress`, payload);
-  return data;
+  const { data } = await api.post(`/tasks/${taskId}/progress`, payload);
+  return data.data || data;
 }

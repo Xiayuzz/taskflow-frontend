@@ -159,6 +159,7 @@ const replySubmitting = ref(false);
 const userStore = useUserStore();
 const pageSize = computed(() => props.pageSize || 10);
 const hasMore = computed(() => flat.value.length < total.value);
+const hasValidTaskId = computed(() => Number.isFinite(Number(props.taskId)));
 
 function buildTree(list: Comment[]): TreeNode[] {
   const map = new Map<number, TreeNode>();
@@ -194,6 +195,12 @@ function getCommentUserName(comment: Comment) {
 }
 
 async function load(reset = false) {
+  if (!hasValidTaskId.value) {
+    flat.value = [];
+    tree.value = [];
+    total.value = 0;
+    return;
+  }
   if (loading.value) return;
   loading.value = true;
   try {
@@ -220,6 +227,7 @@ function loadMore() {
 }
 
 async function submitRoot() {
+  if (!hasValidTaskId.value) return;
   if (!draft.value.trim()) return;
   submitting.value = true;
   try {
@@ -246,6 +254,7 @@ function closeReply() {
   replyingTo.value = null;
 }
 async function submitReply() {
+  if (!hasValidTaskId.value) return;
   if (!replyingTo.value || !replyDraft.value.trim()) return;
   replySubmitting.value = true;
   try {

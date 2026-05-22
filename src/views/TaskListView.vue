@@ -43,7 +43,6 @@
             multiple
             clearable
             placeholder="全部"
-            :teleported="false"
             style="width: 200px"
           >
             <el-option
@@ -66,7 +65,6 @@
             multiple
             clearable
             placeholder="全部"
-            :teleported="false"
             style="width: 200px"
           >
             <el-option
@@ -92,7 +90,6 @@
             allow-create
             default-first-option
             placeholder="选择或输入标签"
-            :teleported="false"
             style="width: 250px"
           >
             <el-option
@@ -140,7 +137,6 @@
             v-model="filters.hasReminder"
             clearable
             placeholder="全部"
-            :teleported="false"
             style="width: 120px"
           >
             <el-option
@@ -1381,6 +1377,10 @@ onMounted(() => {
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  overflow: visible;
+}
+.filters-card :deep(.el-card__body) {
+  overflow: visible;
 }
 .filters-card:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -1396,11 +1396,25 @@ onMounted(() => {
   border-radius: 0.5rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
+  column-gap: 1.25rem;
+  row-gap: 1rem;
+  align-items: flex-start;
+  overflow: visible;
 }
 .filters .el-form-item {
   margin-bottom: 0;
+  margin-right: 0;
+  flex: 0 1 auto;
+}
+.filters :deep(.el-form-item__label) {
+  flex: 0 0 auto;
+}
+.filters :deep(.el-form-item__content) {
+  min-width: 0;
+}
+.filters :deep(.el-select),
+.filters :deep(.el-input) {
+  max-width: 100%;
 }
 .task-table {
   background: #fff;
@@ -1514,8 +1528,15 @@ onMounted(() => {
   background: #fafafa;
   border-top: 1px solid #e3f2fd;
   border-radius: 0 0 0.5rem 0.5rem;
-  margin: -1.25rem -1.25rem -1.25rem -1.25rem;
-  padding: 0 1.25rem 1.25rem 1.25rem;
+  margin: 0;
+  padding: 1.25rem;
+}
+.advanced-filters :deep(.el-form) {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+  row-gap: 1rem;
+  align-items: flex-start;
 }
 .advanced-filters :deep(.el-collapse) {
   background: transparent;
@@ -1534,7 +1555,8 @@ onMounted(() => {
   padding: 0.75rem 0;
 }
 .advanced-filters :deep(.el-form-item) {
-  margin-bottom: 1rem;
+  margin-right: 0;
+  margin-bottom: 0;
 }
 .advanced-filters :deep(.el-date-editor) {
   border-radius: 0.25rem;
