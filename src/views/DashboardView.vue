@@ -147,18 +147,18 @@
         ></div>
       </el-card>
 
-      <!-- 任务完成时间图表 -->
+      <!-- 任务实际工时图表 -->
       <el-card
         shadow="never"
         class="chart-card lg:col-span-2"
       >
         <template #header>
-          <div class="card-head">任务完成时间</div>
+          <div class="card-head">任务实际工时</div>
         </template>
         <div
           ref="taskCompletionTimeChartRef"
           class="w-full h-64"
-          aria-label="任务完成时间图表"
+          aria-label="任务实际工时图表"
         ></div>
       </el-card>
     </div>
@@ -175,6 +175,7 @@ import {
   getUserPerformanceStats,
 } from '@/services/statsService';
 import { toast } from '@/services/toast';
+import { off as offSocket, on as onSocket } from '@/services/websocket';
 import type {
   TaskCompletionTimeStats,
   TaskOverviewStats,
@@ -198,6 +199,7 @@ let tagChart: echarts.ECharts | null = null;
 let userPerformanceChart: echarts.ECharts | null = null;
 let taskAssignmentChart: echarts.ECharts | null = null;
 let taskCompletionTimeChart: echarts.ECharts | null = null;
+let statsRefreshTimer: number | null = null;
 
 interface DashboardCard {
   id: string;
@@ -316,6 +318,7 @@ const taskCompletionTimeStats = ref<TaskCompletionTimeStats>({
 
 // 渲染所有图表
 function renderCharts() {
+  disposeCharts();
   renderStatusChart();
   renderPriorityChart();
   renderTrendChart();
@@ -323,6 +326,23 @@ function renderCharts() {
   renderUserPerformanceChart();
   renderTaskAssignmentChart();
   renderTaskCompletionTimeChart();
+}
+
+function disposeCharts() {
+  statusChart?.dispose();
+  priorityChart?.dispose();
+  trendChart?.dispose();
+  tagChart?.dispose();
+  userPerformanceChart?.dispose();
+  taskAssignmentChart?.dispose();
+  taskCompletionTimeChart?.dispose();
+  statusChart = null;
+  priorityChart = null;
+  trendChart = null;
+  tagChart = null;
+  userPerformanceChart = null;
+  taskAssignmentChart = null;
+  taskCompletionTimeChart = null;
 }
 
 // 渲染任务状态分布图表
@@ -666,7 +686,7 @@ function renderTaskAssignmentChart() {
   });
 }
 
-// 渲染任务完成时间图表（按日期趋势）
+// 渲染任务实际工时图表（按日期趋势）
 function renderTaskCompletionTimeChart() {
   if (!taskCompletionTimeChartRef.value) return;
   taskCompletionTimeChart = echarts.init(taskCompletionTimeChartRef.value);
@@ -680,7 +700,7 @@ function renderTaskCompletionTimeChart() {
   taskCompletionTimeChart.setOption({
     tooltip: {
       trigger: 'axis',
-      formatter: '{b}<br/>平均完成时间: {c} 小时',
+      formatter: '{b}<br/>平均实际工时: {c} 小时',
     },
     grid: {
       left: '3%',
@@ -697,12 +717,12 @@ function renderTaskCompletionTimeChart() {
     },
     yAxis: {
       type: 'value',
-      name: '平均完成时间(小时)',
+      name: '平均实际工时(小时)',
       splitLine: { lineStyle: { type: 'dashed', color: '#eee' } },
     },
     series: [
       {
-        name: '平均完成时间',
+        name: '平均实际工时',
         type: 'line',
         data: avgTimes,
         smooth: true,
@@ -725,7 +745,7 @@ function renderTaskCompletionTimeChart() {
 }
 
 // 初始化数据和图表
-async function init() {
+async function init(showError = true) {
   try {
     // 并行加载统计数据（overview 已合并趋势、标签、分配等数据）
     const [overviewData, performanceData, completionTimeData] = await Promise.all([
@@ -808,26 +828,44 @@ async function init() {
     renderCharts();
   } catch (error: any) {
     console.error('Dashboard init error:', error);
-    toast.error('加载统计数据失败: ' + (error?.response?.data?.message || error.message));
+    if (showError) {
+      toast.error('加载统计数据失败: ' + (error?.response?.data?.message || error.message));
+    }
   }
+}
+
+function refreshStatsSoon() {
+  if (statsRefreshTimer !== null) {
+    window.clearTimeout(statsRefreshTimer);
+  }
+  statsRefreshTimer = window.setTimeout(() => {
+    statsRefreshTimer = null;
+    init(false);
+  }, 300);
 }
 
 // 组件挂载时初始化
 onMounted(() => {
   init();
+  onSocket('task:update', refreshStatsSoon);
+  onSocket('task:new', refreshStatsSoon);
+  onSocket('task:deleted', refreshStatsSoon);
+  onSocket('stats:update', refreshStatsSoon);
   window.addEventListener('resize', handleResize);
 });
 
 // 组件卸载前清理
 onBeforeUnmount(() => {
+  offSocket('task:update', refreshStatsSoon);
+  offSocket('task:new', refreshStatsSoon);
+  offSocket('task:deleted', refreshStatsSoon);
+  offSocket('stats:update', refreshStatsSoon);
+  if (statsRefreshTimer !== null) {
+    window.clearTimeout(statsRefreshTimer);
+    statsRefreshTimer = null;
+  }
   try {
-    statusChart?.dispose();
-    priorityChart?.dispose();
-    trendChart?.dispose();
-    tagChart?.dispose();
-    userPerformanceChart?.dispose();
-    taskAssignmentChart?.dispose();
-    taskCompletionTimeChart?.dispose();
+    disposeCharts();
   } catch {
     // ignore
   }

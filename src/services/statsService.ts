@@ -34,8 +34,8 @@ export interface TaskCompletionTimeParams {
 export async function getTaskOverviewStats(
   params?: TaskOverviewParams
 ): Promise<TaskOverviewStats> {
-  const { data } = await api.get('/api/stats/tasks/overview', { params });
-  return data;
+  const { data } = await api.get('/stats/tasks/overview', { params });
+  return data.data || data;
 }
 
 /**
@@ -44,8 +44,9 @@ export async function getTaskOverviewStats(
 export async function getUserPerformanceStats(
   params?: UserPerformanceParams
 ): Promise<UserPerformanceStats[]> {
-  const { data } = await api.get('/api/stats/users/performance', { params });
-  return data.items;
+  const { data } = await api.get('/stats/users/performance', { params });
+  const result = data.data || data;
+  return result.items || result;
 }
 
 /**
@@ -54,7 +55,6 @@ export async function getUserPerformanceStats(
 export async function getTaskCompletionTimeStats(
   params?: TaskCompletionTimeParams
 ): Promise<TaskCompletionTimeStats> {
-  const { data } = await api.get('/api/stats/tasks/completion-time', { params });
+  const { data } = await api.get('/stats/tasks/completion-time', { params });
   return data.data || data;
 }
-
